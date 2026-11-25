@@ -9,6 +9,16 @@ This plugin connects Claude Code to Aember:
 - **Records Claude's own edits.** When Claude edits with its own Edit and Write tools, Aember records the change as Claude Code's, so you can undo it like any other.
 - **Optionally, routes file tools to Aember.** With **Route file tools through Aember** on, Claude Code's own Read, Edit, Write and Grep are refused for the project's files, and Claude uses Aember's tools instead. Read still opens images and PDFs.
 
+## What Aember's tools do that Claude's own can't
+
+- **See your unsaved changes**, in open editors and in History, where Read and Grep see only the disk.
+- **Rename a symbol across the project** as one undoable change, by meaning, where a text edit misses uses and catches lookalikes.
+- **Find uses and callers by meaning** (`find_references`, `call_hierarchy`), not by spelling.
+- **Report what an edit broke**: an edit's result gives the language server's new errors and warnings, without a build.
+- **Undo one call** (`restore`), in every file it touched, keeping everything after it.
+
+From Aember 1.0.1 they also cost fewer tokens than Claude's own tools. Measured on a 270-line file: a read takes 4% fewer tokens than Read, reading it again unchanged 99% fewer (Aember says it hasn't changed, or gives a diff when it has), and a search the same as ripgrep. Edits can name lines, or rewrite a declaration by name with `replace_symbol`, so Claude needn't write the old text out first.
+
 ## You need
 
 - A Mac with macOS 15 or later, on Apple silicon.
