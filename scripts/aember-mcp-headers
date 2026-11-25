@@ -1,0 +1,20 @@
+#!/bin/bash
+# The headers Claude Code sends with each request to Aember's MCP
+# server (the plugin's headersHelper): the server's token, so Claude
+# Code connects when Settings > MCP > Require token is on. Prints a
+# JSON object of headers; {} when Aember isn't running or has no token.
+
+discovery="$HOME/Library/Application Support/Aember/mcp-server.json"
+token=''
+if [ -f "$discovery" ]; then
+    pid=$(/usr/bin/plutil -extract pid raw -o - "$discovery" 2> /dev/null)
+    if [ -n "$pid" ] && kill -0 "$pid" 2> /dev/null; then
+        token=$(/usr/bin/plutil -extract token raw -o - "$discovery" 2> /dev/null)
+    fi
+fi
+# A token is letters and digits; anything else is not sent
+if [[ $token =~ ^[0-9A-Za-z_-]+$ ]]; then
+    printf '{"Authorization": "Bearer %s"}\n' "$token"
+else
+    printf '{}\n'
+fi
