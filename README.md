@@ -49,7 +49,7 @@ If you connected Claude Code to Aember by hand before (`claude mcp add … aembe
 
 ## When Aember isn't running
 
-If Aember isn't running when a session starts, the plugin launches it, and Claude Code may have tried to connect before Aember was ready. Claude is told to ask you to run `/mcp` and reconnect `aember` if its tools are missing. Route file tools through Aember never refuses Claude's own tools until Claude Code has connected to Aember in that session.
+If Aember isn't running when a session starts, the plugin launches it, and Claude Code may have tried to connect before Aember was ready. Claude is told to ask you to run `/mcp` and reconnect `plugin:aember:tools` if its tools are missing. Route file tools through Aember never refuses Claude's own tools until Claude Code has connected to Aember in that session.
 
 ## Privacy
 
