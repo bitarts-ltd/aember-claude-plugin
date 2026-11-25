@@ -16,11 +16,17 @@ This plugin connects Claude Code to Aember:
 
 ## Install
 
+Add this repository as a plugin marketplace, then install the plugin from it:
+
 ```bash
-claude plugin install aember --marketplace bitarts-ltd/aember-claude-plugin
+claude plugin marketplace add bitarts-ltd/aember-claude-plugin
 ```
 
-Claude Code asks for the plugin's options when you enable it. The defaults work for most people.
+```bash
+claude plugin install aember@bitarts
+```
+
+Claude Code asks for the plugin's options when you enable it. The defaults work for most people. To set an option when installing, add `--config`, as in `claude plugin install aember@bitarts --config route_file_tools=true`.
 
 | Option | Default | What it does |
 |---|---|---|
