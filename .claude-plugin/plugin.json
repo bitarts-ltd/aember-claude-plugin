@@ -1,0 +1,47 @@
+{
+  "name": "aember",
+  "version": "0.1.0",
+  "description": "Work in Aember, the Mac code editor that records every change to your project, yours and Claude's, so you can undo any one of them. Opens the session's project in Aember and has Claude read, search and edit through Aember's tools.",
+  "author": {
+    "name": "BitArts Ltd",
+    "url": "https://aember.app"
+  },
+  "homepage": "https://aember.app",
+  "privacyPolicyUrl": "https://aember.app/privacy/",
+  "repository": "https://github.com/bitarts-ltd/aember-claude-plugin",
+  "license": "MIT",
+  "keywords": [
+    "aember",
+    "editor",
+    "history",
+    "undo",
+    "mcp",
+    "macos"
+  ],
+  "userConfig": {
+    "open_projects": {
+      "type": "boolean",
+      "title": "Open projects in Aember",
+      "description": "When a session starts in a git repository or an Aember project, open it in Aember, launching Aember in the background if it isn't running. Off: only sessions in projects already open in Aember are told about it.",
+      "default": true
+    },
+    "route_file_tools": {
+      "type": "boolean",
+      "title": "Route file tools through Aember",
+      "description": "Refuse Claude Code's own Read, Edit, Write and Grep on the files of a project open in Aember, so Claude uses Aember's tools and every change is recorded. Read still opens images, PDFs and other files that aren't text.",
+      "default": false
+    },
+    "mcp_url": {
+      "type": "string",
+      "title": "Aember MCP server",
+      "description": "The address in the Endpoint row of Aember's Settings > MCP. Change it only if Aember's server isn't on the usual port.",
+      "default": "http://127.0.0.1:56891/mcp"
+    },
+    "aember_app": {
+      "type": "string",
+      "title": "Aember app",
+      "description": "The Aember.app to launch when Aember isn't running. Empty: /Applications/Aember.app, else any copy of Aember.",
+      "default": ""
+    }
+  }
+}

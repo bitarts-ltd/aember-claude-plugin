@@ -1,0 +1,43 @@
+{
+  "description": "Opens the session's project in Aember and tells Claude to use Aember's tools; reports Claude's own file edits to Aember's History; with route_file_tools on, sends Read, Edit, Write and Grep in Aember projects to Aember's tools.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/aember-hook",
+            "args": ["session-start"],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write|MultiEdit|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/aember-hook",
+            "args": ["pre-tool"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/aember-hook",
+            "args": ["post-tool"],
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

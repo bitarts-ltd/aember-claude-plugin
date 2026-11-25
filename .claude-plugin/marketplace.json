@@ -1,0 +1,15 @@
+{
+  "name": "bitarts",
+  "description": "BitArts' plugins for Claude Code: Aember, the Mac code editor that records every change.",
+  "owner": {
+    "name": "BitArts Ltd",
+    "url": "https://aember.app"
+  },
+  "plugins": [
+    {
+      "name": "aember",
+      "source": ".",
+      "description": "Opens Claude Code's project in Aember, the Mac code editor that records every change so you can undo any one of them, and has Claude work through Aember's tools."
+    }
+  ]
+}

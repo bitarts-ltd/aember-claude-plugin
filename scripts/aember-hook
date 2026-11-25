@@ -1,0 +1,117 @@
+#!/bin/bash
+# The Aember plugin's hook. Claude Code runs it with one argument:
+#
+#   session-start  When a session starts: opens the session's project in
+#                  Aember (launching Aember in the background if the
+#                  folder is a project and Aember isn't running), and
+#                  prints what Claude should know about working in it.
+#   pre-tool       Before Read, Edit, Write, MultiEdit and Grep: Aember
+#                  refuses a file with unsaved changes, records a file
+#                  before Claude writes it, and with the route_file_tools
+#                  option refuses Claude's own file tools in the project.
+#   post-tool      After Edit, Write and MultiEdit: Aember records the
+#                  change in History as Claude Code's.
+#
+# It finds Aember's MCP server through the file Aember writes while the
+# server runs, posts the hook's input to it, and prints Aember's answer.
+# When Aember isn't reachable it prints nothing and exits 0, which lets
+# Claude Code go on as if the plugin weren't there.
+
+event=$1
+input=$(cat)
+discovery="$HOME/Library/Application Support/Aember/mcp-server.json"
+bundle_id='us.bitarts.Aember'
+
+option() {
+    # A plugin option, as Claude Code exports it, or a default
+    local name="CLAUDE_PLUGIN_OPTION_$1"
+    printf '%s' "${!name:-$2}"
+}
+
+discover() {
+    # The running server's port and token, if its file is current
+    port=''
+    token=''
+    [ -f "$discovery" ] || return 1
+    local pid
+    pid=$(/usr/bin/plutil -extract pid raw -o - "$discovery" 2> /dev/null)
+    [ -n "$pid" ] && kill -0 "$pid" 2> /dev/null || return 1
+    port=$(/usr/bin/plutil -extract port raw -o - "$discovery" 2> /dev/null)
+    token=$(/usr/bin/plutil -extract token raw -o - "$discovery" 2> /dev/null)
+    [ -n "$port" ]
+}
+
+post() {
+    # Posts the input to /hooks/claude-code, or /hooks/claude-code/<event>,
+    # and prints the answer
+    local header=()
+    # The token goes in a header file, not the command line
+    exec 3< <(printf 'Authorization: Bearer %s\n' "$token")
+    [ -n "$token" ] && header=(-H @/dev/fd/3)
+    printf '%s' "$input" | /usr/bin/curl -sf -m "$2" -H 'Content-Type: application/json' "${header[@]}" --data-binary @- "http://127.0.0.1:$port/hooks/claude-code${1:+/$1}" 2> /dev/null
+}
+
+is_project() {
+    # Whether a folder is in a git repository or an Aember project,
+    # below the home folder
+    local folder=$1
+    while [ -n "$folder" ] && [ "$folder" != / ] && [ "$folder" != "$HOME" ]; do
+        if [ -e "$folder/.git" ] || [ -e "$folder/.aember" ]; then
+            return 0
+        fi
+        folder=$(dirname "$folder")
+    done
+    return 1
+}
+
+launch_aember() {
+    # Starts Aember without bringing it to the front
+    local app
+    app=$(option AEMBER_APP '')
+    if [ -z "$app" ] && [ -d /Applications/Aember.app ]; then
+        app=/Applications/Aember.app
+    fi
+    if [ -n "$app" ] && [ -d "$app" ]; then
+        open -g -a "$app"
+    else
+        open -g -b "$bundle_id"
+    fi
+}
+
+case $event in
+session-start)
+    if [ "$(option OPEN_PROJECTS true)" = false ]; then
+        discover && post session-context 5
+        exit 0
+    fi
+    if ! discover; then
+        cwd=$(printf '%s' "$input" | /usr/bin/plutil -extract cwd raw -o - - 2> /dev/null)
+        cwd=${cwd:-$CLAUDE_PROJECT_DIR}
+        # Launch Aember only for a project, and only when it isn't
+        # running at all: running without its server means no license
+        # or the server turned off, which waiting won't change
+        is_project "$cwd" || exit 0
+        pgrep -xq Aember && exit 0
+        launch_aember 2> /dev/null || exit 0
+        for _ in $(seq 40); do
+            sleep 0.5
+            discover && break
+        done
+        [ -n "$port" ] || exit 0
+    fi
+    post session-start 20
+    ;;
+pre-tool)
+    discover || exit 0
+    if [ "$(option ROUTE_FILE_TOOLS false)" = true ]; then
+        post route 9
+    else
+        post '' 9
+    fi
+    ;;
+post-tool)
+    discover || exit 0
+    post '' 9
+    ;;
+esac
+exit 0
