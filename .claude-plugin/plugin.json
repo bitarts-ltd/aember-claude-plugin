@@ -1,6 +1,6 @@
 {
   "name": "aember",
-  "version": "0.1.3",
+  "version": "1.0.0",
   "description": "Work in Aember, the Mac code editor that records every change to your project, yours and Claude's, so you can undo any one of them. Opens the session's project in Aember and has Claude read, search and edit through Aember's tools.",
   "author": {
     "name": "BitArts Ltd",
