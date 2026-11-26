@@ -22,7 +22,7 @@ From Aember 1.0.1 they also cost fewer tokens than Claude's own tools. Measured 
 ## You need
 
 - A Mac with macOS 15 or later, on Apple silicon.
-- [Aember](https://aember.app/download). It's free to use as an editor. Its MCP server, which Claude talks to, needs a license ($15, once) or the free two-week trial.
+- [Aember](https://aember.app/download) 1.0.1 or later. It's free to use as an editor. Its MCP server, which Claude talks to, needs a license ($15, once) or the free two-week trial. (With Aember 1.0.0, Claude can use Aember's tools and its edits are recorded, but projects aren't opened, Claude isn't told about Aember, and file tools aren't routed.)
 
 ## Install
 
@@ -45,15 +45,36 @@ Claude Code asks for the plugin's options when you enable it. The defaults work 
 | Aember MCP server | `http://127.0.0.1:56891/mcp` | Aember's server address, from the Endpoint row of Aember's Settings > MCP. |
 | Aember app | empty | The Aember.app to launch. Empty uses /Applications/Aember.app. |
 
-If you connected Claude Code to Aember by hand before (`claude mcp add … aember`), remove that server with `claude mcp remove aember`, so Claude doesn't see Aember's tools twice. Aember's per-project Claude Code hooks (Settings > MCP > Install Hooks) aren't needed with the plugin either.
+If you connected Claude Code to Aember by hand before (`claude mcp add … aember`), remove that server with `claude mcp remove aember`, so Claude doesn't see Aember's tools twice. Aember's per-project Claude Code hooks (Settings > MCP > Install Hooks) aren't needed with the plugin either: remove them with Remove Hooks, or Claude's edits are reported twice.
+
+The plugin's tools are named `mcp__plugin_aember_tools__*`. If you allowed the tools of a hand-added `aember` server in Claude Code's permissions, allow `mcp__plugin_aember_tools` instead.
+
+## Try it
+
+Start Claude Code in a git repository on your Mac, then ask:
+
+1. **"What does this project's main function do?"** Aember opens the project behind your terminal, and Claude reads the code with Aember's `read_symbol` or `get_file_contents`, which show unsaved changes in Aember's editors too.
+2. **"Rename `parseConfig` to `loadConfig` everywhere."** Claude renames it with `rename_symbol`, by meaning, across every file, as one change. In Aember, open History > Timeline: the rename is one Claude Code change you can undo.
+3. **"Undo your last change, but keep mine."** Claude finds its own operation with `changes_by` or `diff_since` and takes it back out with `restore`, keeping the edits made after it.
 
 ## When Aember isn't running
 
 If Aember isn't running when a session starts, the plugin launches it, and Claude Code may have tried to connect before Aember was ready. Claude is told to ask you to run `/mcp` and reconnect `plugin:aember:tools` if its tools are missing. Route file tools through Aember never refuses Claude's own tools until Claude Code has connected to Aember in that session.
 
+## What the plugin runs
+
+- **`hooks/hooks.json`** runs `scripts/aember-hook` (bash) at session start, before Read, Edit, Write, MultiEdit and Grep, and after Edit, Write and MultiEdit. The script finds Aember's server from the file Aember writes while it runs (`~/Library/Application Support/Aember/mcp-server.json`: its port, process id and token), and posts the hook's input to it with `curl`, on 127.0.0.1 only. That input is what Claude Code gives hooks: the session id, the folder, the tool's name and arguments (for an edit, the file's path and the text written). The post carries Aember's token, read from that file, and the Claude Code process's id, so Aember knows which session's tools work. At session start, when Aember isn't running and the folder is a project, the script launches Aember in the background (`open -g`) and waits up to 20 seconds for its server. When Aember can't be reached, the script does nothing.
+- **`.mcp.json`** adds Aember's MCP server (`plugin:aember:tools`) at the address in the plugin's options. Its `headersHelper`, `scripts/aember-mcp-headers` (bash), reads the same file and gives Claude Code two headers for its requests to Aember: the token, and the Claude Code process's id.
+
+The scripts are short and readable in this repository. They install nothing and fetch nothing.
+
 ## Privacy
 
-The plugin talks only to Aember, on your Mac (127.0.0.1). It sends nothing anywhere else. See Aember's [privacy policy](https://aember.app/privacy/).
+The plugin talks only to Aember, on your Mac (127.0.0.1). It sends nothing anywhere else, and Aember keeps what it receives in the project's History on your Mac. See Aember's [privacy policy](https://aember.app/privacy/).
+
+## Support
+
+Report problems at [github.com/bitarts-ltd/aember-claude-plugin/issues](https://github.com/bitarts-ltd/aember-claude-plugin/issues). Aember's help is at [aember.app/help](https://aember.app/help/).
 
 ## License
 
