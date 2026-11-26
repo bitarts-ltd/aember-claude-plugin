@@ -44,10 +44,12 @@ discover() {
 post() {
     # Posts the input to /hooks/claude-code, or /hooks/claude-code/<event>,
     # and prints the answer
-    local header=()
+    # The Claude Code process, which ties the session to its MCP
+    # connection (aember-mcp-headers sends the same)
+    local header=(-H "X-Claude-Code-PID: $PPID")
     # The token goes in a header file, not the command line
     exec 3< <(printf 'Authorization: Bearer %s\n' "$token")
-    [ -n "$token" ] && header=(-H @/dev/fd/3)
+    [ -n "$token" ] && header+=(-H @/dev/fd/3)
     printf '%s' "$input" | /usr/bin/curl -sf -m "$2" -H 'Content-Type: application/json' "${header[@]}" --data-binary @- "http://127.0.0.1:$port/hooks/claude-code${1:+/$1}" 2> /dev/null
 }
 
